@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+           http://www.springframework.org/schema/tx
+           http://www.springframework.org/schema/tx/spring-tx-2.5.xsd"> 
+	
+	<bean id="beanFactory" class="utils.SpringFactory" />
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" >  
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/lushi"/>
+        <property name="username" value="root" />
+        <property name="password" value="wangyi" />
+        <property name="defaultAutoCommit" value="true"/>
+
+    </bean>
+    
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" abstract="false"
+        lazy-init="false" autowire="default" dependency-check="default">
+        <property name="dataSource">
+            <ref bean="dataSource" />
+        </property>
+    </bean>
+    
+    <bean id="cardDao" class="wangyi.dao.CardDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+    
+    <bean id="gameCardDao" class="wangyi.dao.GameCardDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+    
+    <bean id="eventDao" class="wangyi.dao.EventDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+    
+    <bean id="gameDao" class="wangyi.dao.GameDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+    
+    <bean id="heroDao" class="wangyi.dao.HeroDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+    
+    <bean id="gameListenerDao" class="wangyi.dao.GameListenerDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+    
+    <bean id="heroMinionDao" class="wangyi.dao.HeroMinionDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+    
+    <bean id="minionDao" class="wangyi.dao.MinionDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+    
+    <bean id="weaponDao" class="wangyi.dao.WeaponDao">
+    	<property name="jdbcTemplate">
+         	<ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+	
+	<bean id="springCards" class="wangyi.beans.CardCache" init-method="init">
+		<property name="cardDao" >
+			<ref bean="cardDao" />	
+		</property>
+	</bean>
+	
+	<bean id="actionCache" class="wangyi.beans.ActionCache">
+	</bean>
+	
+	<bean id="playerCache" class="wangyi.beans.PlayerCache">
+		<property name="gameDao" >
+			<ref bean="gameDao" />	
+		</property>
+	</bean>
+	
+		
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+         <property name="dataSource" ref="dataSource" />
+    </bean> 
+    
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+		 <tx:attributes>
+			 <tx:method name="insert*" propagation="REQUIRED" />
+			 <tx:method name="create*" propagation="REQUIRED" />
+			 <tx:method name="update*" propagation="REQUIRED" />
+			 <tx:method name="take*" propagation="REQUIRED" />
+			 <tx:method name="join*" propagation="REQUIRED" />
+			 <tx:method name="end*" propagation="REQUIRED" />
+			 <tx:method name="get*" propagation="NOT_SUPPORTED" read-only="true" />
+		 </tx:attributes>
+    </tx:advice> 
+    
+    <aop:config>
+		<aop:pointcut id="allManagerMethod"
+			expression="execution(public * wangyi.dao..*.*(..))" />
+		<aop:advisor pointcut-ref="allManagerMethod" advice-ref="txAdvice" />
+	</aop:config> 
+</beans>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
